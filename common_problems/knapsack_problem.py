@@ -3,6 +3,7 @@ class KnapsackSolver(object):
     pass
 
   def weights(self, weight_per_value, weight_limit, item, current_weight=0, current_value=0, items=None):
+    global results_stack
  
     if items is None: 
       items = []
@@ -10,48 +11,51 @@ class KnapsackSolver(object):
     current_weight += item[1]
     current_value += item[0]
 
-    if current_weight > weight_limit:
-      return
-    else:
+    if not current_weight > weight_limit:
+      results_stack.append({'weight': current_weight, 'value': current_value, 'item_list': items + [item]})
+      
+      new_list = items + [item]
 
-      #return {'weight': current_weight, 'value': current_value, 'item_list': items + [item]}, [
-      #self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) for i in weight_per_value if self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) is not None]
+      """
+      For improved speed:
+      Should check for uniqueness of entries. If for example, the results stack already has the entry [[1, 2], [2, 1]]
+      And weights is called with the arguments items=[2, 1] it should not recurse through with an item argument of [1, 2]
+      Since [[2, 1], [1, 2]] and [[1, 2], [2, 1]] are equivalent
 
-      return [ {'weight': current_weight, 'value': current_value, 'item_list': items + [item]} ] + [
-      self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) for i in weight_per_value if self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) is not None]
+      This almost does it:
+        set_uniqueness = any(all(current_item in d['item_list'] for current_item in new_list) for d in results_stack)
 
-      #return [{'weight': current_weight, 'value': current_value, 'item_list': items + [item]}] + filter(lambda item: self.weights(weight_per_value, weight_limit, item, current_weight, current_value, items + [item]), weight_per_value)
-      #self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) for i in weight_per_value if self.weights(weight_per_value, weight_limit, i, current_weight, current_value, items + [item]) is not None]
+      However, it will not correctly count for the right number of instances of a repeated entry in the list.
+      Sets cannot be used either, for this reason
 
-  def unscramble_mess(self, data, max={}):
+      """
 
-    length = len(data)
+      for w in weight_per_value:
+        self.weights(weight_per_value, weight_limit, w, current_weight, current_value, items + [item])
 
-    if type(data) == type({}):
-      print "D IS", data['value']
-      return data['value']
-    else:
-      #return [self.unscramble_mess(datum) for datum in data]
-      #return filter(lambda datum: self.unscramble_mess(datum), data)
-      f = lambda a,b: a if (a > b) else b
-      print "S", filter(lambda datum: self.unscramble_mess(datum), data)
-      return reduce(f, filter(lambda datum: self.unscramble_mess(datum), data))
 
 if __name__ == "__main__":
-
-  from compiler.ast import flatten
 
   # Stored as [ price ($), weight (kg) ]
   weight_values = [ [4, 12], [2, 2], [2, 1], [1, 1], [10, 4] ]
   carrying_capacity = 15
 
+  # For intensive operations these can be threaded to run simultaneously
   k = [ KnapsackSolver() ]*len(weight_values)
 
+  print "Using the following price-weight pairs: ", [ x for x in weight_values ]
+  
   for idx, x in enumerate(weight_values):
+    results_stack = []
+
     res = k[idx].weights(weight_values, carrying_capacity, weight_values[idx])
-    print "Max value starting with %s => %s" %(weight_values[idx], max(map(lambda e: e['value'], flatten(res))))
+    print "Max value starting with %s => $%s" %(weight_values[idx], max(map(lambda e: e['value'], results_stack)))
 
 
-  
-  
+  # OUTPUT:
+    # Max value starting with [4, 12] => 10
+    # Max value starting with [2, 2]  => 34
+    # Max value starting with [2, 1]  => 36
+    # Max value starting with [1, 1]  => 35
+    # Max value starting with [10, 4] => 36
 

@@ -1,8 +1,8 @@
 """
 Usage:
   from balanced_tree import *
-  a = Node(3); b = Node(4); c = Node(5); d = Node(6); e = Node(7)
-  a.left = b; a.right = c; c.left = d; d.left = e
+  a = Node(3); b = Node(4); c = Node(5); d = Node(6); e = Node(7); f = Node(8)
+  a.left = b; a.right = c; c.left = d; c.right = f; d.left = e; 
   t = Tree(a)
   t.tree_sum(); t.tree_nodes()
 """
@@ -35,6 +35,7 @@ class Node(object):
 class Tree(object):
   def __init__(self, root):
     self.root = root
+    self.nodes = []
 
   def tree_levels(self, n, level = 0):
     # Return max depth of the tree
@@ -108,3 +109,59 @@ class Tree(object):
     else:
       return True
 
+  def get_nodes(self):
+    return self.nodes
+
+  def search_level_order(self, n=None):
+    # Bredth first search
+    if n is None:
+      n = self.root
+      self.nodes.append(n)
+
+    if n.left:
+      self.nodes.append(n.left)
+    if n.right:
+      self.nodes.append(n.right)
+
+    if n.left:
+      self.search_level_order(n.left)
+    if n.right:
+      self.search_level_order(n.right)
+
+  def pre_order(self, n=None):
+    # Depth first search (Root, Left, Right)
+    if n is None:
+      n = self.root
+      self.nodes = []
+    
+    print n.value
+    self.nodes.append(n)
+
+    if n.left:
+      self.pre_order(n.left)
+    if n.right:
+      self.pre_order(n.right)
+
+  def in_order(self, n=None):
+    # Depth first search (Left, Root, Right)
+
+    if n is None:
+      n = self.root
+
+    if n.left:
+      self.in_order(n.left)
+    print n.value
+    if n.right: 
+      self.in_order(n.right)
+
+  def post_order(self, n=None):
+    # Depth first search (Left, Right, Root)
+
+    if n is None:
+      n = self.root
+
+    if n.left: 
+      self.post_order(n.left)
+    if n.right: 
+      self.post_order(n.right)
+    print n.value
